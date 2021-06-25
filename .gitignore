@@ -3,3 +3,9 @@ node_modules
 dist
 dist-ssr
 *.local
+
+# idea files
+.idea
+
+yarn.lock
+package.json.lock
