@@ -28,7 +28,26 @@ export default defineComponent({
     init() {},
   },
   mounted() {
+    class Point {
+      constructor(x, y) {
+        this.x = x;
+        this.y = y;
+      }
+      toString() {
+        return `Point{x=${this.x}, y=${this.y}}`;
+      }
+    }
+    class Axis {
+      max = 0;
+      min = 0;
+      label = [];
+    }
+    let p = new Point(0, 1);
+
+    this.$refs.canvas.style.zIndex = 9;
+    this.$refs.axis.style.zIndex = 1;
     let canvas = this.$refs.canvas.getContext("2d")
+
     canvas.strokeStyle = 'black'
     canvas.lineWidth = 2
     this.width = canvas.canvas.width
@@ -39,11 +58,13 @@ export default defineComponent({
         max: 900,
         min: -100,
         aXis: 0,
+        scale: undefined,
       },
       y: {
         max: 900,
         min: -100,
         aXis: 0,
+        scale: undefined,
       },
       axis: axis,
       canvas: canvas,
@@ -74,15 +95,21 @@ export default defineComponent({
       },
       transform(arr) {
         return [
-          (arr[0] - this.x.min) * this.scaleX(),
-          (this.y.max - arr[1]) * this.scaleY(),
+          this.transformX(arr[0]),
+          this.transformY(arr[1]),
         ]
       },
       scaleX() {
-        return this.canvas.canvas.width / (this.x.max - this.x.min)
+        if (!this.x.scale) {
+          this.x.scale = this.canvas.canvas.width / (this.x.max - this.x.min)
+        }
+        return this.x.scale
       },
       scaleY() {
-        return this.canvas.canvas.height / (this.y.max - this.y.min);
+        if (!this.y.scale) {
+          this.y.scale = this.canvas.canvas.height / (this.y.max - this.y.min);
+        }
+        return this.y.scale
       },
       transformX(x) {
         return (x - this.x.min) * this.scaleX();
@@ -112,9 +139,24 @@ export default defineComponent({
         this.index++
       },
     }
+    let arr = [];
+    setInterval(() => {
+      let now = new Date().getTime();
+      for (let i = 0; i < 50; i++) {
+        arr.push([now, obj.randomData()]);
+        now += 10;
+      }
+      // console.log(arr)
+    }, 500);
+
     function step() {
-      for (let i = 0; i < 2; i++) {
-        obj.push(obj.randomData())
+      let now = new Date().getTime();
+      if (arr.length > 0) {
+        let a = arr.filter(item => item[0] < now)
+        for (let i = 0; i < a.length; i++) {
+          let item = arr.shift();
+          obj.push(item[1]);
+        }
       }
       window.requestAnimationFrame(step)
     }
@@ -130,13 +172,13 @@ export default defineComponent({
 .container {
   left: 0;
   position: relative;
-  height: 120px;
-  width: 1020px;
+  height: 60px;
+  width: 510px;
 }
 canvas {
   position: absolute;
   border: 2px solid red;
-  height: 100px;
-  width: 1000px;
+  height: 50px;
+  width: 500px;
 }
 </style>
